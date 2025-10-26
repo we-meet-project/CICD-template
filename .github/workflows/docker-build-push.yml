@@ -10,7 +10,6 @@ on:
       image-version:
         required: true
         type: string
-      # [추가] Dockerfile 경로를 'input'으로 받습니다.
       dockerfile-path:
         description: '빌드할 Dockerfile의 (호출한 앱 리포지토리 내) 경로'
         required: true
@@ -25,31 +24,26 @@ jobs:
   build-and-push:
     runs-on: ubuntu-22.04
     steps:
-      # [수정] '호출한 앱'(app_1)의 리포지토리 코드를 체크아웃합니다.
       - name: Checkout Caller Repository
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.repository.full_name }}
           ref: ${{ github.event.ref }}
 
-      # 2. Docker Hub 로그인은 동일합니다.
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB }}
 
       # 3. Docker 이미지 빌드 및 푸시
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          # context: . (이제 'app_1' 리포지토리의 루트를 의미)
           context: .
-          # [수정] 'input'으로 받은 파일 경로를 사용합니다.
           file: ${{ inputs.dockerfile-path }}
           push: true
           
-          # tags: 부분은 올바르게 작성하셨습니다.
           tags: |
             ${{ inputs.image-name }}:${{ inputs.image-version }}
             ${{ inputs.image-name }}:latest
